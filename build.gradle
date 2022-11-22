@@ -1,0 +1,107 @@
+plugins {
+    id 'java'
+}
+
+group 'io.github.yeamy'
+version '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+
+dependencies {
+//    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+//    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+}
+
+//test {
+//    useJUnitPlatform()
+//}
+
+apply plugin: 'maven-publish'
+
+jar {// package code
+    archiveFileName = 'lib.jar'
+}
+task generateSourceJar(type: Jar) {
+    archiveClassifier.set('sources')
+    from sourceSets.main.java.srcDirs
+    archiveFileName = 'lib-sources.jar'
+}
+javadoc {// create document
+    source = sourceSets.main.java.srcDirs
+    options {
+        encoding "UTF-8"
+        charSet 'UTF-8'
+        author true
+        version true
+        links "http://docs.oracle.com/javase/8/docs/api"
+    }
+}
+task generateJavadoc(type: Jar) { // package document as jar
+    group = 'jar'
+    archiveFileName = 'lib-javadoc.jar'
+    archiveClassifier.set('javadoc')
+    from "$rootDir/javadoc"
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId 'io.github.yeamy'
+            artifactId 'sqlitestatement'
+            version '1.0'
+            pom {
+                name = 'sqlitestatement'
+                description = 'Deserialize data from JDBC ResultSet as java bean.'
+                url = 'https://github.com/Yeamy/SQLiteStatement'
+                inceptionYear = '2022'
+                scm {
+                    url = 'https://github.com/Yeamy/SQLiteStatement'
+                    connection = 'scm:git@https://github.com/Yeamy/SQLiteStatement.git'
+                    developerConnection = 'scm:git@https://github.com/Yeamy/SQLiteStatement.git'
+                }
+                licenses {
+                    license {
+                        name = 'GNU General Public License v3.0'
+                        url = 'https://www.gnu.org/licenses/lgpl-3.0.txt'
+                        distribution = 'repo'
+                        comments = 'A business-friendly OSS license'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'yeamy0754'
+                        name = 'Yeaming'
+                        email = 'yeamy0754@hotmail.com'
+                        url = 'https://github.com/Yeamy'
+                    }
+                }
+                issueManagement {
+                    system = 'Github'
+                    url = 'https://github.com/Yeamy/SQLiteStatement'
+                }
+            }
+            artifact generateSourceJar
+            artifact jar
+            artifact generateJavadoc
+        }
+    }
+
+    repositories {
+        maven {
+            url = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
+            credentials {
+                username ossrhUsername
+                password ossrhPassword
+            }
+        }
+    }
+}
+
+apply plugin: 'signing'
+signing {
+    sign publishing.publications.maven
+}
